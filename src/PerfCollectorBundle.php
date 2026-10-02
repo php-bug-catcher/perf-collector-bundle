@@ -15,6 +15,7 @@ use BugCatcher\PerfCollector\Normalize\PathNormalizer;
 use BugCatcher\PerfCollector\Sample\SampleDecoder;
 use BugCatcher\PerfCollector\Ship\BatchPayloadBuilder;
 use BugCatcher\PerfCollector\Ship\HttpShipper;
+use BugCatcher\PerfCollectorBundle\Command\PerfAggregateCommand;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\AbstractServiceConfigurator;
@@ -90,6 +91,11 @@ final class PerfCollectorBundle extends AbstractBundle {
 
 		$services->set(Aggregator::class)->args($arguments(false));
 		$services->set(self::DRY_RUN_AGGREGATOR, Aggregator::class)->args($arguments(true));
+
+		$services->set(PerfAggregateCommand::class)
+			->arg('$aggregator', service(Aggregator::class))
+			->arg('$dryRunAggregator', service(self::DRY_RUN_AGGREGATOR))
+			->arg('$stateDir', $stateDir);
 	}
 
 	/**
