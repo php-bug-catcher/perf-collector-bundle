@@ -27,8 +27,8 @@ final class ContainerFactory {
 	 *
 	 * @param array<string,mixed> $config
 	 */
-	public static function loaded(array $config = [], ?PerfCollectorBundle $bundle = null): ContainerBuilder {
-		$container = self::create($config, $bundle);
+	public static function loaded(array $config = []): ContainerBuilder {
+		$container = self::create($config);
 		(new MergeExtensionConfigurationPass())->process($container);
 
 		return $container;
@@ -40,8 +40,8 @@ final class ContainerFactory {
 	 *
 	 * @param array<string,mixed> $config
 	 */
-	public static function compiled(array $config = [], ?PerfCollectorBundle $bundle = null): ContainerBuilder {
-		$container = self::create($config, $bundle);
+	public static function compiled(array $config = []): ContainerBuilder {
+		$container = self::create($config);
 		$container->addCompilerPass(self::publicize(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -1024);
 		// Env placeholders resolved, because a ContainerBuilder used as a runtime container never
 		// resolves them on its own and a kernel's dumped container always has.
@@ -60,7 +60,7 @@ final class ContainerFactory {
 	}
 
 	/** @param array<string,mixed> $config */
-	private static function create(array $config, ?PerfCollectorBundle $bundle): ContainerBuilder {
+	private static function create(array $config): ContainerBuilder {
 		// The default bag on purpose: a kernel uses EnvPlaceholderParameterBag, and %env()% only
 		// behaves the way an application will see it when the test container has one too.
 		$container = new ContainerBuilder();
@@ -73,7 +73,7 @@ final class ContainerFactory {
 			'kernel.bundles'     => [],
 		]);
 
-		$extension = ($bundle ?? new PerfCollectorBundle())->getContainerExtension();
+		$extension = (new PerfCollectorBundle())->getContainerExtension();
 		$container->registerExtension($extension);
 		$container->loadFromExtension($extension->getAlias(), $config + self::required());
 

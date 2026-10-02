@@ -16,6 +16,10 @@ use BugCatcher\PerfCollector\Sample\SampleDecoder;
 use BugCatcher\PerfCollector\Ship\BatchPayloadBuilder;
 use BugCatcher\PerfCollector\Ship\HttpShipper;
 use BugCatcher\PerfCollectorBundle\Command\PerfAggregateCommand;
+use BugCatcher\PerfCollectorBundle\EventListener\PublishSqlMetricsListener;
+use BugCatcher\PerfCollectorBundle\Sql\SqlMetrics;
+use BugCatcher\PerfCollectorBundle\Sql\SqlMetricsMiddleware;
+use Doctrine\DBAL\Driver\Middleware;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\AbstractServiceConfigurator;
@@ -96,6 +100,16 @@ final class PerfCollectorBundle extends AbstractBundle {
 			->arg('$aggregator', service(Aggregator::class))
 			->arg('$dryRunAggregator', service(self::DRY_RUN_AGGREGATOR))
 			->arg('$stateDir', $stateDir);
+
+		// doctrine/dbal is suggested, not required. Without it the decorators cannot even be
+		// loaded - they extend its abstract middleware classes - and the counter and the listener
+		// would only publish a zero that means nothing. Wrapping every database connection in an
+		// application is not something to do on a maybe, so both conditions have to hold.
+		if ($config['sql_metrics'] && interface_exists(Middleware::class)) {
+			$services->set(SqlMetrics::class);
+			$services->set(SqlMetricsMiddleware::class)->tag('doctrine.middleware');
+			$services->set(PublishSqlMetricsListener::class);
+		}
 	}
 
 	/**
