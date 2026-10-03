@@ -5,27 +5,20 @@
   "description": "Symfony integration for the Bug Catcher performance collector: the aggregator as a console command, and Doctrine SQL metrics in every sample",
   "keywords": ["performance", "monitoring", "profiling", "symfony", "bug-catcher"],
   "minimum-stability": "stable",
-  "repositories": [
-    {
-      "//": "The collector is not on Packagist yet. Remove this block once it is - Composer will find it on its own.",
-      "type": "vcs",
-      "url": "https://github.com/php-bug-catcher/perf-collector"
-    }
-  ],
   "require": {
     "php": ">=8.3",
     "php-bug-catcher/perf-collector": "^2.0@RC",
-    "symfony/config": "^6.4 || ^7.0",
-    "symfony/console": "^6.4 || ^7.0",
-    "symfony/dependency-injection": "^6.4 || ^7.0",
-    "symfony/event-dispatcher": "^6.4 || ^7.0",
-    "symfony/http-kernel": "^6.4 || ^7.0"
+    "symfony/config": "^6.4 || ^7.0 || ^8.0",
+    "symfony/console": "^6.4 || ^7.0 || ^8.0",
+    "symfony/dependency-injection": "^6.4 || ^7.0 || ^8.0",
+    "symfony/event-dispatcher": "^6.4 || ^7.0 || ^8.0",
+    "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
   },
   "require-dev": {
     "doctrine/dbal": "^4.0",
     "ext-pdo_sqlite": "*",
     "phpunit/phpunit": "^11.5",
-    "symfony/framework-bundle": "^6.4 || ^7.0"
+    "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0"
   },
   "suggest": {
     "doctrine/dbal": "To count Doctrine queries and the time they take into every performance sample"
