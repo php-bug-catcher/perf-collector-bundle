@@ -1,0 +1,77 @@
+# Two things this package promises that a laptop cannot prove: that it works across the supported
+# PHP and Symfony versions, and that it works with doctrine/dbal *absent* - the SQL metrics are a
+# suggestion, not a requirement, and an application that does not use Doctrine installs this
+# bundle for the aggregate command alone.
+name: Tests
+
+on: [ push, pull_request ]
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: [ "8.3", "8.4", "8.5" ]
+        symfony-versions: [ "6.4.*", "7.4.*" ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: curl, json, pdo_sqlite
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php${{ matrix.php-versions }}-sf${{ matrix.symfony-versions }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-php${{ matrix.php-versions }}-sf${{ matrix.symfony-versions }}-
+
+      # framework-bundle drags the rest of Symfony with it, so pinning it pins the matrix leg
+      - name: Pin Symfony
+        run: composer require --no-update --dev --no-interaction symfony/framework-bundle:"${{ matrix.symfony-versions }}"
+
+      - name: Install dependencies
+        run: composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Tests
+        run: vendor/bin/phpunit
+
+  without-doctrine:
+    name: Without doctrine/dbal
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: curl, json
+          coverage: none
+
+      - name: Install dependencies
+        run: composer update --prefer-stable --prefer-dist --no-interaction
+
+      # the suggestion, actually absent. WithoutDoctrineTest rebuilds the container in a
+      # subprocess whose autoloader refuses the namespace; this is the real thing, and the SQL
+      # tests skip themselves rather than fail.
+      - name: Remove the suggestion
+        run: composer remove --dev --no-interaction doctrine/dbal
+
+      - name: Tests
+        run: vendor/bin/phpunit

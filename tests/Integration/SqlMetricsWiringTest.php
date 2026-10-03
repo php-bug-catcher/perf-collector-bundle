@@ -10,6 +10,7 @@ use BugCatcher\PerfCollectorBundle\Sql\SqlMetrics;
 use BugCatcher\PerfCollectorBundle\Sql\SqlMetricsMiddleware;
 use BugCatcher\PerfCollectorBundle\Tests\ContainerFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
+use BugCatcher\PerfCollectorBundle\Tests\NeedsDoctrineDbal;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +22,8 @@ use PHPUnit\Framework\TestCase;
  * installed, is `Sql\WithoutDoctrineTest`.
  */
 final class SqlMetricsWiringTest extends TestCase {
+
+	use NeedsDoctrineDbal;
 
 	#[DataProvider('sqlServices')]
 	public function testTheSqlSideIsThereWhenDoctrineIsAndTheSwitchIsOn(string $id): void {

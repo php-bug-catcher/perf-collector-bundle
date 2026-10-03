@@ -7,20 +7,14 @@
   "minimum-stability": "stable",
   "repositories": [
     {
-      "//": "LOCAL DEVELOPMENT AID. The collector is not on Packagist yet; remove this before publishing.",
-      "type": "path",
-      "url": "../bug-catcher-perf-collector",
-      "options": {
-        "symlink": true,
-        "versions": {
-          "php-bug-catcher/perf-collector": "dev-master"
-        }
-      }
+      "//": "The collector is not on Packagist yet. Remove this block once it is - Composer will find it on its own.",
+      "type": "vcs",
+      "url": "https://github.com/php-bug-catcher/perf-collector"
     }
   ],
   "require": {
     "php": ">=8.3",
-    "php-bug-catcher/perf-collector": "dev-master",
+    "php-bug-catcher/perf-collector": "^2.0@RC",
     "symfony/config": "^6.4 || ^7.0",
     "symfony/console": "^6.4 || ^7.0",
     "symfony/dependency-injection": "^6.4 || ^7.0",

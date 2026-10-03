@@ -10,6 +10,7 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception;
+use BugCatcher\PerfCollectorBundle\Tests\NeedsDoctrineDbal;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,6 +19,8 @@ use PHPUnit\Framework\TestCase;
  * methods I happened to think of.
  */
 final class SqlMetricsMiddlewareTest extends TestCase {
+
+	use NeedsDoctrineDbal;
 
 	private SqlMetrics $metrics;
 	private Connection $connection;

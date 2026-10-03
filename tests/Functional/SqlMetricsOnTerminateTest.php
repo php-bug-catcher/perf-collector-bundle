@@ -6,6 +6,7 @@ namespace BugCatcher\PerfCollectorBundle\Tests\Functional;
 
 use BugCatcher\PerfCollectorBundle\EventListener\PublishSqlMetricsListener;
 use BugCatcher\PerfCollectorBundle\Sql\SqlMetrics;
+use BugCatcher\PerfCollectorBundle\Tests\NeedsDoctrineDbal;
 use BugCatcher\PerfCollectorBundle\Tests\TestKernel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * question the hand-built container cannot answer.
  */
 final class SqlMetricsOnTerminateTest extends TestCase {
+
+	use NeedsDoctrineDbal;
 
 	private TestKernel $kernel;
 
