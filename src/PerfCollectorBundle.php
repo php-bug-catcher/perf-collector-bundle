@@ -20,6 +20,9 @@ use BugCatcher\PerfCollectorBundle\EventListener\PublishSqlMetricsListener;
 use BugCatcher\PerfCollectorBundle\Sql\SqlMetrics;
 use BugCatcher\PerfCollectorBundle\Sql\SqlMetricsMiddleware;
 use Doctrine\DBAL\Driver\Middleware;
+use Doctrine\DBAL\Driver\Middleware\AbstractConnectionMiddleware;
+use ReflectionMethod;
+use ReflectionUnionType;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\AbstractServiceConfigurator;
@@ -105,11 +108,34 @@ final class PerfCollectorBundle extends AbstractBundle {
 		// loaded - they extend its abstract middleware classes - and the counter and the listener
 		// would only publish a zero that means nothing. Wrapping every database connection in an
 		// application is not something to do on a maybe, so both conditions have to hold.
-		if ($config['sql_metrics'] && interface_exists(Middleware::class)) {
+		if ($config['sql_metrics'] && self::sqlMetricsArePossible()) {
 			$services->set(SqlMetrics::class);
 			$services->set(SqlMetricsMiddleware::class)->tag('doctrine.middleware');
 			$services->set(PublishSqlMetricsListener::class);
 		}
+	}
+
+	/**
+	 * Whether this installation's DBAL is one the decorators can extend.
+	 *
+	 * Present is not enough, it has to be DBAL 4. `AbstractConnectionMiddleware::exec()` returns
+	 * `int` in DBAL 3 and `int|string` in DBAL 4, and {@see SqlMetricsConnection} declares the
+	 * wider one. PHP will not let a child widen a return type, so against DBAL 3 the decorator
+	 * is a fatal error the moment it is loaded - and where it lands is `cache:clear`, with a
+	 * message about covariance that names two Doctrine classes and not this bundle.
+	 *
+	 * Narrowing the decorator to `int` instead would compile against both and then throw a
+	 * TypeError on DBAL 4 the first time a driver answered with a string. Declining to register
+	 * is the honest option: the application keeps every other measurement and loses the two
+	 * query numbers, which is what it had before installing this.
+	 */
+	private static function sqlMetricsArePossible(): bool {
+		if (!interface_exists(Middleware::class) || !class_exists(AbstractConnectionMiddleware::class)) {
+			return false;
+		}
+
+		return (new ReflectionMethod(AbstractConnectionMiddleware::class, 'exec'))
+			->getReturnType() instanceof ReflectionUnionType;
 	}
 
 	/**
