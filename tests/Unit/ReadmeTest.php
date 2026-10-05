@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BugCatcher\PerfCollectorBundle\Tests\Unit;
 
 use BugCatcher\PerfCollectorBundle\Command\PerfAggregateCommand;
+use BugCatcher\PerfCollectorBundle\Console\ConsolePathBuilder;
 use BugCatcher\PerfCollectorBundle\PerfCollectorBundle;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -38,6 +39,21 @@ final class ReadmeTest extends TestCase {
 		self::assertCount(1, $attributes);
 
 		self::assertStringContainsString((string) $attributes[0]->newInstance()->name, $this->readme());
+	}
+
+	/**
+	 * An operator has to be able to look up what gets hidden from a path, and a list that has
+	 * drifted from the code is worse than no list - the missing name reads as a name that is safe.
+	 */
+	public function testEveryRedactedArgumentNameIsDocumented(): void {
+		$section = $this->section('What a console run is called');
+
+		foreach (ConsolePathBuilder::REDACTED_ARGUMENTS as $name) {
+			self::assertStringContainsString('`' . $name . '`', $section, $name);
+		}
+
+		self::assertStringContainsString(ConsolePathBuilder::REDACTED, $section);
+		self::assertStringContainsString(ConsolePathBuilder::NOTHING, $section);
 	}
 
 	/** The one number the collector measured that is big enough to change a decision. */

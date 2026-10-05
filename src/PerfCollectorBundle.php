@@ -16,6 +16,8 @@ use BugCatcher\PerfCollector\Sample\SampleDecoder;
 use BugCatcher\PerfCollector\Ship\BatchPayloadBuilder;
 use BugCatcher\PerfCollector\Ship\HttpShipper;
 use BugCatcher\PerfCollectorBundle\Command\PerfAggregateCommand;
+use BugCatcher\PerfCollectorBundle\Console\ConsolePathBuilder;
+use BugCatcher\PerfCollectorBundle\EventListener\PublishConsolePathListener;
 use BugCatcher\PerfCollectorBundle\EventListener\PublishSqlMetricsListener;
 use BugCatcher\PerfCollectorBundle\Sql\SqlMetrics;
 use BugCatcher\PerfCollectorBundle\Sql\SqlMetricsMiddleware;
@@ -112,6 +114,17 @@ final class PerfCollectorBundle extends AbstractBundle {
 			$services->set(SqlMetrics::class);
 			$services->set(SqlMetricsMiddleware::class)->tag('doctrine.middleware');
 			$services->set(PublishSqlMetricsListener::class);
+		}
+
+		// The built-in denylist is merged here rather than inside the builder because this is
+		// where the configuration exists - the same reason the rest of the graph is registered
+		// here and not in config/services.php. The application's names go second, so that
+		// `getArgument('$redacted')` shows an operator exactly what their addition did.
+		if ($config['console_path']) {
+			$services->set(ConsolePathBuilder::class)
+				->arg('$withArguments', $config['console_path_arguments'])
+				->arg('$redacted', [...ConsolePathBuilder::REDACTED_ARGUMENTS, ...$config['console_path_redact']]);
+			$services->set(PublishConsolePathListener::class);
 		}
 	}
 

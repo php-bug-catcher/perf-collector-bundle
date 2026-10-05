@@ -41,6 +41,24 @@ return static function (DefinitionConfigurator $definition): void {
 				// Count Doctrine queries and their time into every sample. Needs doctrine/dbal;
 				// without it there is nothing to time and nothing is registered.
 				->booleanNode('sql_metrics')->defaultTrue()->end()
+				// Name a console run after the command Symfony resolved and its positional
+				// arguments, instead of leaving it to the hook's argv guess - which reads the
+				// first non-option token, so `bin/console --env prod app:sync` is recorded as
+				// `/console/prod` and an alias is recorded as itself.
+				->booleanNode('console_path')->defaultTrue()->end()
+				// false keeps the command name and drops every argument value. For an application
+				// whose arguments are an e-mail address or an order reference, that is the
+				// difference between a path per job and a path per invocation.
+				->booleanNode('console_path_arguments')->defaultTrue()->end()
+				// Argument names whose value is replaced by {redacted}. Added to the built-in
+				// list, never replacing it: a path cannot be scrubbed afterwards, so the only safe
+				// direction for this list to move in is longer.
+				->arrayNode('console_path_redact')
+					->beforeNormalization()->ifString()->then(static fn (string $one): array => [$one])->end()
+					// An empty needle is a substring of every name, so it would redact the whole
+					// application while reading like a harmless blank line in YAML.
+					->scalarPrototype()->cannotBeEmpty()->end()
+				->end()
 			->end()
 	;
 };

@@ -37,6 +37,9 @@ final class ConfigurationTest extends TestCase {
 		self::assertTrue($config['default_rules']);
 		self::assertSame(AggregateOptions::DEFAULT_MAX_BYTES, $config['max_bytes']);
 		self::assertTrue($config['sql_metrics']);
+		self::assertTrue($config['console_path']);
+		self::assertTrue($config['console_path_arguments']);
+		self::assertSame([], $config['console_path_redact']);
 	}
 
 	/**
@@ -87,6 +90,10 @@ final class ConfigurationTest extends TestCase {
 		yield 'an empty lock file' => ['lock_file', ''];
 		yield 'an empty rules file' => ['rules_file', ''];
 		yield 'a key nobody reads' => ['sql_metric', true];
+		// A substring of every argument name there is, written as something that looks like a
+		// harmless blank line in YAML.
+		yield 'an empty needle in the denylist' => ['console_path_redact', ['']];
+		yield 'a denylist that is not a list of names' => ['console_path_redact', 7];
 	}
 
 	/** @param array<string,mixed> $overrides @return array<string,mixed> */
